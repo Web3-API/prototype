@@ -102,7 +102,10 @@ export class WasmWeb3Api extends Api {
     const awaitCompletion = new Promise(
       (resolve: (value?: unknown) => void) => {
         let transferPending = false;
-        const transferData = async (data: ArrayBuffer, status: number) => {
+        const transferData = async (
+          data: ArrayBuffer,
+          status: ThreadWakeStatus
+        ) => {
           let progress = 0;
           const totalBytes = data.byteLength;
           const dataView = new Uint8Array(data);
@@ -169,6 +172,7 @@ export class WasmWeb3Api extends Api {
               }
               // TODO: replace with proper logging
               case "LogInfo": {
+                console.log("LogInfo:", action.message);
                 break;
               }
               case "SubInvoke": {

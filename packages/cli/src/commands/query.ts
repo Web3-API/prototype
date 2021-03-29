@@ -6,11 +6,13 @@ import axios from "axios";
 import chalk from "chalk";
 import { GluegunToolbox } from "gluegun";
 import gql from "graphql-tag";
-import path from "path";
+import path, { isAbsolute } from "path";
 import { UriRedirect, Web3ApiClient } from "@web3api/client-js";
 import { ensPlugin } from "@web3api/ens-plugin-js";
 import { ethereumPlugin } from "@web3api/ethereum-plugin-js";
 import { ipfsPlugin } from "@web3api/ipfs-plugin-js";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const HELP = `
@@ -30,7 +32,7 @@ export default {
 
     testEns = testEns || t;
 
-    let recipePath;
+    let recipePath: string | null;
     try {
       const params = toolbox.parameters;
       [recipePath] = fixParameters(
@@ -87,7 +89,7 @@ export default {
       {
         from: "w3://ens/ens.web3api.eth",
         to: ensPlugin({ address: ensAddress }),
-      },
+      }
     ];
 
     const client = new Web3ApiClient({ redirects });
@@ -126,10 +128,28 @@ export default {
             Object.keys(vars).forEach((key: string) => {
               const value = vars[key];
               if (typeof value === "string") {
-                if (value[0] === "$") {
-                  output[key] = constants[value.replace("$", "")];
+                let str = value as string;
+                // Resolve Constants
+                if (str[0] === "$") {
+                  str = constants[value.replace("$", "")];
+                }
+
+                // Resolve Files
+                if (str.startsWith("file:")) {
+                  const path = str.replace("file:", "");
+
+                  // If the path isn't absolute, use the recipe folder as the root dir
+                  if (isAbsolute(path)) {
+                    output[key] = readFileSync(path);
+                  } else {
+                    if (!recipePath) {
+                      throw Error("recipePath is null. This should never happen.");
+                    }
+
+                    output[key] = readFileSync(resolve(dirname(recipePath), path));
+                  }
                 } else {
-                  output[key] = value;
+                  output[key] = str;
                 }
               } else if (typeof value === "object") {
                 output[key] = resolveConstants(
@@ -173,6 +193,8 @@ export default {
             print.fancy(error.message);
             print.error("-----------------------------------");
           }
+
+          process.exit(1);
         }
       }
     }

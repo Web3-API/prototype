@@ -11,13 +11,31 @@ export class UrlParam {
   value: string;
 }
 
-export type ResponseType = "TEXT" | "BINARY";
+export enum ResponseType {
+  TEXT,
+  BINARY,
+}
 
 export class Request {
   headers?: Header[];
   urlParams?: UrlParam[];
   responseType: ResponseType;
-  body?: string;
+  body?: Body;
+}
+
+export class Body {
+  stringBody?: string;
+  rawBody?: ArrayBuffer;
+  formDataBody: FormData;
+}
+
+export class FormData {
+  data: FormDataEntry[];
+}
+
+export class FormDataEntry {
+  key: string;
+  data: string;
 }
 
 export class Response {

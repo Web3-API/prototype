@@ -1,4 +1,4 @@
-import { Request, Response, Header } from "./types";
+import { Request, Response, ResponseType, Header } from "./types";
 
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 
@@ -28,6 +28,12 @@ export function fromAxiosResponse(
       body: Buffer.from(axiosResponse.data).toString("base64"),
     };
   } else {
+    if (typeof axiosResponse.data == "object") {
+      return {
+        ...response,
+        body: JSON.stringify(axiosResponse.data),
+      };
+    }
     return {
       ...response,
       body: axiosResponse.data,
@@ -50,7 +56,8 @@ export function toAxiosRequestConfig(request: Request): AxiosRequestConfig {
   }, {});
 
   let config: AxiosRequestConfig = {
-    responseType: request.responseType == "BINARY" ? "arraybuffer" : "text",
+    responseType:
+      request.responseType == ResponseType.BINARY ? "arraybuffer" : "text",
   };
 
   if (urlParams) {

@@ -1,0 +1,6 @@
+query {
+  catFile(
+    ipfsUrl: $ipfsUrl
+    cid: $cid
+  )
+}

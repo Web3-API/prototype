@@ -9,30 +9,43 @@ type UrlParam {
 }
 
 type Response {
-  status: Int!
+  status: UInt64!
   statusText: String!
   headers: [Header!]
-  body: String
+  body: String!
 }
 
 type Request {
   headers: [Header!]
   urlParams: [UrlParam!]
-  responseType: String! # "TEXT" || "BINARY"
-  body: String
+  responseType: ResponseType!
+  body: Body!
 }
 
-# Enum types curently not supported 
-#
-# enum ResponseType {
-#   TEXT
-#   BINARY
-# }
+enum ResponseType {
+  TEXT
+  BINARY
+}
+
+type Body {
+  stringBody: String
+  rawBody: Bytes
+  formDataBody: FormData!
+}
+
+type FormData {
+  data: [FormDataEntry!]
+}
+
+type FormDataEntry {
+  key: String
+  data: String
+}
 
 type Query {
-  get(url: String!, request: Request): Response
+  get(url: String!, request: Request!): Response
 }
 
 type Mutation {
-  post(url: String!, request: Request): Response
+  post(url: String!, request: Request!): Response
 }

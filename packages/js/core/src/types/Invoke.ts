@@ -1,4 +1,5 @@
 import { Uri } from ".";
+import { UriRedirect } from "./UriRedirect";
 
 export type InvokableModules = "query" | "mutation";
 
@@ -32,6 +33,16 @@ export interface InvokeApiOptions<TUri = Uri> {
    * into JavaScript objects.
    */
   decode?: boolean;
+
+  /**
+   * Custom redirects valid only during current invoke.
+   */
+  redirects?: UriRedirect<Uri>[];
+
+  /**
+   * Invoke id used to track query context data set internally.
+   */
+  id?: string;
 }
 
 /**

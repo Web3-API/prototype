@@ -1,4 +1,4 @@
-import { Uri, InvokeApiOptions } from "./";
+import { Uri, UriRedirect, InvokeApiOptions } from "./";
 
 import { DocumentNode, parse } from "graphql";
 import gql from "graphql-tag";
@@ -37,6 +37,16 @@ export interface QueryApiOptions<
    * Variables referenced within the query string via GraphQL's '$variable' syntax.
    */
   variables?: TVariables;
+
+  /**
+   * Custom redirects valid only in this query call.
+   */
+  redirects?: UriRedirect<string>[];
+
+  /**
+   * Query id used to track query context data set internally.
+   */
+  id?: string;
 }
 
 /**

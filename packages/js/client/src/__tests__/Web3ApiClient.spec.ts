@@ -7,6 +7,9 @@ import {
   stopTestEnvironment
 } from "@web3api/test-env-js";
 import { GetPathToTestApis } from "@web3api/test-cases";
+import { ipfsPlugin } from "@web3api/ipfs-plugin-js";
+import { ensPlugin } from "@web3api/ens-plugin-js";
+import { ethereumPlugin } from "@web3api/ethereum-plugin-js";
 
 jest.setTimeout(50000);
 
@@ -43,6 +46,116 @@ describe("Web3ApiClient", () => {
       }
     })
   }
+
+  it("simple-storage with query time redirects", async () => {
+    const api = await buildAndDeployApi(
+      `${GetPathToTestApis()}/simple-storage`,
+      ipfsProvider,
+      ensAddress
+    );
+
+    const ensUri = `ens/testnet/${api.ensDomain}`;
+    const ipfsUri = `ipfs/${api.ipfsCid}`;
+
+    const redirects = [
+      {
+        from: "w3://ens/ipfs.web3api.eth",
+        to: ipfsPlugin({ provider: ipfsProvider })
+      },
+      {
+        from: "w3//ens/ens.web3api.eth",
+        to: ensPlugin({
+          addresses: {
+            testnet: ensAddress
+          }
+        }),
+      },
+      {
+        from: "w3://ens/ethereum.web3api.eth",
+        to: ethereumPlugin({
+          defaultNetwork: "testnet",
+          networks: {
+            testnet: {
+              provider: ethProvider
+            }
+          }
+        })
+      }
+    ]
+
+    const client = await createWeb3ApiClient({});
+
+    const deploy = await client.query<{
+      deployContract: string;
+    }>({
+      uri: ensUri,
+      query: `
+        mutation {
+          deployContract(
+            connection: {
+              networkNameOrChainId: "testnet"
+            }
+          )
+        }
+      `,
+      redirects: redirects
+    });
+
+    expect(deploy.errors).toBeFalsy();
+    expect(deploy.data).toBeTruthy();
+    expect(deploy.data?.deployContract.indexOf("0x")).toBeGreaterThan(-1);
+
+    if (!deploy.data) {
+      return;
+    }
+
+    const address = deploy.data.deployContract;
+    const set = await client.query<{
+      setData: string;
+    }>({
+      uri: ipfsUri,
+      query: `
+        mutation {
+          setData(
+            address: "${address}"
+            value: $value
+            connection: {
+              networkNameOrChainId: "testnet"
+            }
+          )
+        }
+      `,
+      variables: {
+        value: 55,
+      },
+      redirects: redirects
+    });
+
+    expect(set.errors).toBeFalsy();
+    expect(set.data).toBeTruthy();
+    expect(set.data?.setData.indexOf("0x")).toBeGreaterThan(-1);
+
+    const get = await client.query<{
+      getData: number;
+    }>({
+      uri: ensUri,
+      query: `
+        query {
+          getData(
+            address: "${address}"
+            connection: {
+              networkNameOrChainId: "testnet"
+            }
+          )
+        }
+      `,
+      redirects: redirects
+    });
+
+    expect(get.errors).toBeFalsy();
+    expect(get.data).toBeTruthy();
+    expect(get.data?.getData).toBe(55);
+  });
 
   it("simple-storage", async () => {
     const api = await buildAndDeployApi(

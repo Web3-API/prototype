@@ -1,0 +1,7 @@
+version: "3.4"
+
+services:
+  logging-server:
+    build: ./
+    ports:
+      - "${TRACE_SERVER_PORT}:${TRACE_SERVER_PORT}"

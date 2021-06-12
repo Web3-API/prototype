@@ -1,0 +1,45 @@
+{
+  "id": "EnvManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format"],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "0.0.1-prealpha.2"
+    },
+    "dockerCompose": {
+      "type": "any"
+    },
+    "env": {
+      "patternProperties": {
+        "^.*$": {
+          "type": ["string", "number"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dockerComposePath": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": ["module", "name", "version"]
+      }
+    }
+  }
+}

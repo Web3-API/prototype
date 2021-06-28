@@ -7,6 +7,8 @@ import {
   stopTestEnvironment
 } from "@web3api/test-env-js";
 import { GetPathToTestApis } from "@web3api/test-cases";
+import { Uri, PluginManifest, Web3ApiManifest, deserializeWeb3ApiManifest } from "@web3api/core-js";
+import { readFileSync } from "fs";
 
 jest.setTimeout(200000);
 
@@ -898,5 +900,66 @@ describe("Web3ApiClient", () => {
     expect(invalidArrayMapSent.errors?.[0].message).toMatch(
       /Property must be of type 'array'. Found 'map'./
     );
+  });
+
+  it("getManifest -- simple-storage web3api", async () => {
+    const api = await buildAndDeployApi(
+      `${GetPathToTestApis()}/simple-storage`,
+      ipfsProvider,
+      ensAddress
+    );
+    const client = await getClient();
+    const ensUri = `ens/testnet/${api.ensDomain}`;
+
+    const actualManifestStr: string = readFileSync(`${GetPathToTestApis()}/simple-storage/build/web3api.yaml`, 'utf8');
+    const actualManifest: Web3ApiManifest = deserializeWeb3ApiManifest(actualManifestStr);
+
+    const manifest: Web3ApiManifest = await client.getManifest({
+      uri: ensUri,
+      manifest: 'web3api.yaml'
+    })
+    expect(manifest).toStrictEqual(actualManifest);
+
+    const defaultManifest: Web3ApiManifest = (await client.getManifest({
+      uri: ensUri,
+    })) as Web3ApiManifest;
+    expect(defaultManifest).toStrictEqual(actualManifest);
+  });
+
+  it("getManifest -- Logger plugin", async () => {
+    const client = await getClient();
+
+    const manifest: PluginManifest = await client.getManifest({
+      uri: "w3://w3/logger",
+      manifest: "manifest.ts"
+    });
+
+    expect(manifest).toStrictEqual({
+      schema: `
+# TODO: should import and "implements" the logger core-api schema
+# https://github.com/Web3-API/monorepo/issues/75
+
+enum LogLevel {
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
+}
+
+type Query {
+  log(
+    level: LogLevel!
+    message: String!
+  ): Boolean!
+}
+`,
+      implemented: [new Uri("w3/logger")],
+      imported: [],
+    });
+
+    const defaultManifest: PluginManifest = (await client.getManifest({
+      uri: "w3://w3/logger",
+    })) as PluginManifest;
+    expect(defaultManifest).toStrictEqual(manifest);
   });
 });

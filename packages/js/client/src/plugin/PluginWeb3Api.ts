@@ -3,11 +3,15 @@ import {
   Client,
   executeMaybeAsyncFunction,
   filterResults,
+  GetManifestOptions,
   InvokeApiOptions,
   InvokeApiResult,
   Plugin,
   PluginPackage,
   Uri,
+  Manifest,
+  ManifestFile,
+  PluginManifest,
 } from "@web3api/core-js";
 import * as MsgPack from "@msgpack/msgpack";
 import { Tracer } from "@web3api/tracing-js";
@@ -130,6 +134,13 @@ export class PluginWeb3Api extends Api {
 
   public async getSchema(_client: Client): Promise<string> {
     return Promise.resolve(this._plugin.manifest.schema);
+  }
+
+  public async getManifest<T extends ManifestFile>(
+    options: GetManifestOptions<T>, // eslint-disable-line @typescript-eslint/no-unused-vars
+    client: Client // eslint-disable-line @typescript-eslint/no-unused-vars
+  ): Promise<Manifest<T>> {
+    return ({ ...this._plugin.manifest } as PluginManifest) as Manifest<T>;
   }
 
   private getInstance(): Plugin {

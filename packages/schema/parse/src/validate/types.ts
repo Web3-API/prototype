@@ -4,6 +4,7 @@ import {
   isQueryType,
   queryTypeNames,
 } from "../typeInfo";
+import { isEnviromentType } from "../extract/object-types-utils";
 
 import { DocumentNode, StringValueNode, visit } from "graphql";
 import { getSchemaCycles } from "graphql-schema-cycles";
@@ -80,6 +81,11 @@ export function propertyTypes(astNode: DocumentNode): void {
   visit(astNode, {
     enter: {
       ObjectTypeDefinition: (node) => {
+        // Skip env types
+        if (isEnviromentType(node.name.value)) {
+          return;
+        }
+
         currentObject = node.name.value;
         objectTypes[node.name.value] = true;
       },
@@ -101,6 +107,13 @@ export function propertyTypes(astNode: DocumentNode): void {
         }
       },
       FieldDefinition: (node) => {
+        if (
+          node.name.value === "sanitizeMutationEnv" ||
+          node.name.value === "sanitizeQueryEnv"
+        ) {
+          return;
+        }
+
         currentField = node.name.value;
       },
       NamedType: (node) => {

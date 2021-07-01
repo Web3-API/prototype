@@ -70,9 +70,31 @@ type UserObject {
   fieldB: Int!
 }
 
+type QueryEnv {
+  prop: String!
+}
+
+type QueryClientEnv {
+  prop: String!
+}
+
+type MutationEnv {
+  prop: Int!
+}
+
+type MutationClientEnv {
+  prop: String
+}
+
+type Mutation {
+  sanitizeMutationEnv(env: MutationClientEnv!): MutationEnv!
+}
+
 type Query @imports(
   types: [ "TestImport_Query" ]
 ) {
+  sanitizeQueryEnv(env: QueryClientEnv!): QueryEnv!
+
   queryMethod(
     arg: String!
   ): [Int]!

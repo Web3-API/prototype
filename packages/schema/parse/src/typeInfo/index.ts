@@ -13,6 +13,24 @@ export * from "./scalar";
 export * from "./operation";
 export * from "./query";
 
+export enum EnvironmentType {
+  QueryClientEnvType = "QueryClientEnv",
+  QueryEnvType = "QueryEnv",
+  MutationClientEnvType = "MutationClientEnv",
+  MutationEnvType = "MutationEnv",
+}
+
+export interface Environment {
+  mutation: {
+    sanitized?: ObjectDefinition;
+    client?: ObjectDefinition;
+  };
+  query: {
+    sanitized?: ObjectDefinition;
+    client?: ObjectDefinition;
+  };
+}
+
 export interface TypeInfo {
   objectTypes: ObjectDefinition[];
   queryTypes: QueryDefinition[];
@@ -20,7 +38,9 @@ export interface TypeInfo {
   importedObjectTypes: ImportedObjectDefinition[];
   importedQueryTypes: ImportedQueryDefinition[];
   importedEnumTypes: ImportedEnumDefinition[];
+  environment: Environment;
 }
+
 export function createTypeInfo(): TypeInfo {
   return {
     objectTypes: [],
@@ -29,6 +49,10 @@ export function createTypeInfo(): TypeInfo {
     importedObjectTypes: [],
     importedQueryTypes: [],
     importedEnumTypes: [],
+    environment: {
+      mutation: {},
+      query: {},
+    },
   };
 }
 
@@ -42,6 +66,10 @@ export function combineTypeInfo(typeInfos: TypeInfo[]): TypeInfo {
     importedObjectTypes: [],
     importedQueryTypes: [],
     importedEnumTypes: [],
+    environment: {
+      mutation: {},
+      query: {},
+    },
   };
 
   const compareImportedType = (

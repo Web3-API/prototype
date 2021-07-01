@@ -1,7 +1,8 @@
 import {
   TypeInfo,
-  ObjectDefinition,
   createObjectDefinition,
+  Environment,
+  EnvironmentType,
 } from "../typeInfo";
 import {
   extractFieldDefinition,
@@ -20,39 +21,31 @@ import {
   ListTypeNode,
   FieldDefinitionNode,
   visit,
-  DirectiveNode,
 } from "graphql";
 
 const visitorEnter = (
-  objectTypes: ObjectDefinition[],
+  environment: Environment,
   state: State,
   blackboard: Blackboard
 ) => ({
   ObjectTypeDefinition: (node: ObjectTypeDefinitionNode) => {
-    // Skip non-custom types
-    if (node.name.value === "Query" || node.name.value === "Mutation") {
-      return;
-    }
-
-    // Skip env types
     if (isEnviromentType(node.name.value)) {
-      return;
-    }
+      const type = createObjectDefinition({ type: node.name.value });
 
-    // Skip imported types
-    if (
-      node.directives &&
-      node.directives.findIndex(
-        (dir: DirectiveNode) => dir.name.value === "imported"
-      ) > -1
-    ) {
-      return;
-    }
+      if (node.name.value.includes(EnvironmentType.QueryClientEnvType)) {
+        environment.query.client = type;
+      } else if (node.name.value.includes(EnvironmentType.QueryEnvType)) {
+        environment.query.sanitized = type;
+      } else if (
+        node.name.value.includes(EnvironmentType.MutationClientEnvType)
+      ) {
+        environment.mutation.client = type;
+      } else {
+        environment.mutation.sanitized = type;
+      }
 
-    // Create a new TypeDefinition
-    const type = createObjectDefinition({ type: node.name.value });
-    objectTypes.push(type);
-    state.currentType = type;
+      state.currentType = type;
+    }
   },
   NonNullType: (_node: NonNullTypeNode) => {
     state.nonNullType = true;
@@ -80,7 +73,7 @@ const visitorLeave = (state: State) => ({
   },
 });
 
-export function extractObjectTypes(
+export function extractenvironmentTypes(
   astNode: DocumentNode,
   typeInfo: TypeInfo,
   blackboard: Blackboard
@@ -88,7 +81,7 @@ export function extractObjectTypes(
   const state: State = {};
 
   visit(astNode, {
-    enter: visitorEnter(typeInfo.objectTypes, state, blackboard),
+    enter: visitorEnter(typeInfo.environment, state, blackboard),
     leave: visitorLeave(state),
   });
 }

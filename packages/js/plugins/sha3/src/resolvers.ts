@@ -35,6 +35,20 @@ export const query = (): PluginModule => ({
   keccak_256: (input: { message: string }) => {
     return keccak_256(input.message);
   },
+  buffer_keccak_256: (input: { message: ArrayBuffer }) => {
+    const result = keccak_256(input.message);
+    const hexValues = result.match(/[\da-f]{2}/gi);
+
+    if (!hexValues) {
+      return new Uint8Array(0);
+    }
+
+    return new Uint8Array(
+      hexValues.map(function (h) {
+        return parseInt(h, 16);
+      })
+    );
+  },
   hex_keccak_256: (input: { message: string }) => {
     // remove the leading 0x
     const hexString = input.message.replace(/^0x/, "");
@@ -65,9 +79,6 @@ export const query = (): PluginModule => ({
     });
 
     return keccak_256(new Uint8Array(integers));
-  },
-  buffer_keccak_256: (input: { message: ArrayBuffer }) => {
-    return keccak_256(input.message);
   },
   keccak_224: (input: { message: string }) => {
     return keccak_224(input.message);

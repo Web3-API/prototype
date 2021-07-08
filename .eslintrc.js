@@ -21,7 +21,8 @@ module.exports = {
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "prettier",
+    "plugin:json/recommended"
   ],
   rules: {
     "prettier/prettier": ["error"],
@@ -85,18 +86,22 @@ module.exports = {
       }
     ]
   },
-  "overrides": [
+  overrides: [
     {
-      "files": ["**/__tests__/**/*.ts", "*.spec.ts"],
-      "rules": {
+      files: ["**/__tests__/**/*.ts", "*.spec.ts"],
+      rules: {
         "import/no-extraneous-dependencies": "off"
       }
     },
     {
-      "files": ["*.d.ts"],
-      "rules": {
+      files: ["*.d.ts"],
+      rules: {
         "@typescript-eslint/triple-slash-reference": "off"
       }
-    }
+    },
+    {
+      files: ["*.json"],
+      extends: ["plugin:json/recommended"]
+    },
   ]
 };

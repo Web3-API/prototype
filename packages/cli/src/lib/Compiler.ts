@@ -53,6 +53,10 @@ export class Compiler {
     }
   }
 
+  public codegen(): void {
+
+  }
+
   public reset(): void {
     this._config.project.reset();
     this._config.schemaComposer.reset();
@@ -177,12 +181,14 @@ export class Compiler {
         buildQuery
           ? {
               typeInfo: composerOutput.query?.typeInfo as TypeInfo,
+              schema: composerOutput.combined?.schema as string,
               outputDirAbs: queryDirectory as string,
             }
           : undefined,
         buildMutation
           ? {
               typeInfo: composerOutput.mutation?.typeInfo as TypeInfo,
+              schema: composerOutput.combined?.schema as string,
               outputDirAbs: mutationDirectory as string,
             }
           : undefined

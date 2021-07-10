@@ -13,7 +13,6 @@ Options:
   -e, --test-ens <[address,]domain>  Publish the package to a test ENS domain locally (requires --ipfs)
   -w, --watch                        Automatically rebuild when changes are made (default: false)
   -v, --verbose                      Verbose output (default: false)
-
 `;
 
 describe("e2e tests for build command", () => {
